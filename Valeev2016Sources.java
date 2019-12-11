@@ -1,7 +1,7 @@
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.stream.Stream;
-import java.util.Arrays;
+import static java.util.Arrays.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +19,9 @@ import org.w3c.dom.Document;
 // JBreak-2016StreamAPI:рекомендации лучших собаководов
 // ТагирВалеев
 
-public class Valeev2016 {
+////////////////////// Источники //////////////////////////////
+
+public class Valeev2016Sources {
 
     // Задача №1: Сделать источник дочерних узлов для заданного родительского DOM
     // XML узла
@@ -113,7 +115,8 @@ public class Valeev2016 {
 
     public static void Task4() {
      
-        List<List<String>> input = Arrays.asList(Arrays.asList("a", "b", "c"), Arrays.asList("x", "y"), Arrays.asList("1", "2", "3"));
+        List<List<String>> input = asList(asList("a", "b", "c"), asList("x", "y"), asList("1", "2"));
+
         Stream<String> stream = 
             input.get(0).stream()
                 .flatMap(a -> input.get(1).stream()
@@ -125,13 +128,19 @@ public class Valeev2016 {
 
         Supplier<Stream<String>> s = input.stream()
                 // Stream<List<String>>
-                .<Supplier<Stream<String>>>map(list -> list::stream)
+                .<Supplier<Stream<String>>>map(list -> () -> list.stream()) /* list -> list::stream */ 
                 // Stream<Supplier<Stream<String>>>
                 .reduce((sup1, sup2) -> () -> sup1.get().flatMap(e1 -> sup2.get().map(e2 -> e1 + e2)))
                 // Optional<Supplier<Stream<String>>>
                 .orElse(() -> Stream.of(""));
 
-        s.get().forEach(System.out::println);
+        System.out.println();    
+        s.get().forEach(x -> System.out.print("["+x+"]"));
+        System.out.println();    
+        s.get().forEach(x -> System.out.print("["+x+"]"));
+
+        // s.forEach(x -> System.out.println("class = " + x.getClass().getName()));
+
     }
 
     public static void main(String[] args) {
