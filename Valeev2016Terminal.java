@@ -30,7 +30,7 @@ public class Valeev2016Terminal {
     // Дано: [{a=1, b=2}, {a=3, d=4, e=5}, {a=5, b=6, e=7} ]
     // Надо: {a=[1, 3, 5], b=[2, 6], d=[4], e=[5, 7] }
     //////////////////////////////////////////////////////////////////////////////
-    public static void Task1() {
+    public static void Task8() {
 
         List<Map<String, Integer>> input = new ArrayList(3);
         HashMap<String, Integer> m1 = new HashMap();
@@ -76,7 +76,7 @@ public class Valeev2016Terminal {
         long getSalary();
     }
 
-    public static void Task2() {
+    public static void Task9() {
         // Можно в два стрима. 
         Map<Department, Long> deptSalaries = employees.stream()
                 .collect(groupingBy(Employee::getDepartment, summingLong(Employee::getSalary)));
@@ -112,14 +112,19 @@ public class Valeev2016Terminal {
 
     // Задача №10: Найти все максимальные элементы по заданному компаратору. 
     //////////////////////////////////////////////////////////////////////////////
-    public static void Task3() {
+    public static void Task10() {
         // >> [JBreak, JPoint]
         Stream.of("JBreak", "JPoint", "Joker")
             .collect(maxAll(Comparator.comparing(String::length)))
             .forEach(System.out::println);
         
     }    
-
+    // Почему свой коллектор иногда не выход:
+    // 1. Вы хотите короткозамкнутую операцию ("не короткозамкнутый" - всегда проверяются все элементы до конца).
+    //    С помощью стандартных коллекторов нельзя сделать короткозамкнутую :(
+    // 2. Нельзя заставить стрим выполнять коллектор в ORDERED-режиме. Поэтому, если у вас всё идёт норма, 
+    // а другой пользователь вызовет его в parallel(), то коллектор может дать неверный результат. 
+    // Можно дать UnsupportedOperation исключение, если стрим запущен в parallel-режиме, но Валеев считает это плохим стилем
     public static <T> Collector<T, ?, List<T>> maxAll(Comparator<T> cmp) {
         BiConsumer<List<T>, T> accumulator = (list, t) -> {
             if (!list.isEmpty()) {
@@ -141,9 +146,16 @@ public class Valeev2016Terminal {
 
     //Задача №11: Проверить, уникальны ли входные элементы (да или нет). 
     //////////////////////////////////////////////////////////////////////////////
+
+    // Задача, где коллекторы не помогают. Нужно выйти сразу, как обнаружится неуникальность.
+    // Коллектор в этом не помощник. 
+    // НО! Валеев говорит, что этот пример - лучшее нарушение контракта Stream API,
+    // потому что нужно подавать stateless предикат. А здесь абсолютно statefull!
+
     public static void Task11() {
-        Stream.of("JUG.ru", "JBreak", "JPoint", "Joker", "JFocus", "JavaOne", "JBreak")
+        boolean v = Stream.of("JUG.ru", "JBreak", "JPoint", "Joker", "JFocus", "JavaOne")
                 .allMatch(ConcurrentHashMap.newKeySet()::add);
+        System.out.println("Uniq " + v);
     }
 
     // Задача №12: Посчитать хэш-код строки стандартным алгоритмом
@@ -154,29 +166,36 @@ public class Valeev2016Terminal {
         "JBreak".chars().reduce(0, (a, b) -> a * 31 + b);
         // >> -2111961387
 
-        "JBreak".chars().parallel().reduce(0, (a, b) -> a * 31 + b);
+        int ha = "JBreak".chars().parallel().reduce(0, (a, b) -> a * 31 + b);
+        System.out.println("hash parallel :" + ha);
         // >> 4473889
-        // (a*31+b)*31+c != a*31+(b*31+c)
 
-        foldLeft("JBreak".chars().parallel(), 0, (a, b) -> a * 31 + b);
+        // reduce() так же имеет недостатки, как и collector
+        // Кроме того, бинарный предикат должен подчиняться ассоциативному закону:
+        //   (a + b) + с = a + (b + c)
+        // А hash не подчиняется:
+        // (a*31+b)*31+c != a*31+(b*31+c)
+        // в Java 8/9 нет операции reduce(), не требующей ассоциативности 
+        // (на момент доклада 2016, может в Java 10-12 что-то будет?). 
+
+        ha = foldLeft("JBreak".chars().parallel(), 0, (a, b) -> a * 31 + b);
+        System.out.println("hash fold :" + ha);
     }
 
+    // в функции использован forEachOrdered, который гарантирует выполнение 
+    // слева направо. При этом позволяет распараллелить вышестоящие операторы.
+    // forEachOrdered может работать в разных тредах, но гарантирует, что 
+    // предыдущие элементы всегда обработаются happiensBefor для следующих
+    // Поэтому операции можно не синхронизировать (AtomicInt не нужно).
     public static int foldLeft(IntStream input, int seed, IntBinaryOperator op) {
         int[] box = { seed };
         input.forEachOrdered(t -> box[0] = op.applyAsInt(box[0], t));
         return box[0];
     }
-    
-    public static void Task13() {
-    }
-    public static void Task14() {
-    }
-    public static void Task15() {
-    }
+
     public static void main(String[] args) {
-        // Task1();
-        // Task2();
-        Task3(); 
-        // Task4();
+ 
+        Task12(); 
+ 
     }
 }
