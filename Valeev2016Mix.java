@@ -46,7 +46,7 @@ public class Valeev2016Mix {
                                         return b;});
 
 
-        // при "стримозе" (но прикольно !)
+        // при "стримозе" и "regex-мозе" мозга(но прикольно !)
         // работает и для параллельных потоков, но..
         // 1. создавать/разбирать/менять строки накладно
         // 2. что будет, если в исходном потоке появятся ";" и "->" ?
@@ -62,8 +62,36 @@ public class Valeev2016Mix {
             System.out.println(el);
         }                  
     }
-    // плюс этого коллектора - он выдаёт downstream, чтобы пользователь вроде как решил, 
-    // как "коллектить" полученный результат (???). 
+    // плюс этого коллектора - он берёт downstream и применяет его к полученному результату. Это удобно, 
+    // чтобы пользователь вроде как смог решить, как дальше "коллектить" полученный результат (???). 
+    // Удобно делать один внутренний класс и там хранить результаты и реализовывать аккумулятор, комбайнер и пр.
+
+    // Как я понял, главная - последняя строка:
+    /*
+     * 
+     * static <T,A,R> Collector<T,A,R> of(Supplier<A> supplier, 
+     *                                    BiConsumer<A,T> accumulator, 
+     *                                    BinaryOperator<A> combiner, 
+     *                                    Function<A,R> finisher,
+     *                                    Collector.Characteristics... characteristics) 
+     * 
+     * Returns a new Collector described by the given supplier, accumulator, 
+     * combiner, and finisher functions.
+     * 
+     * Type Parameters: 
+     *      T - The type of input elements for the new collector 
+     *      A - The intermediate accumulation type of the new collector 
+     *      R - The final result type of the new collector 
+     * Parameters: 
+     *      supplier    - The supplier function for the new collector
+     *      accumulator - The accumulator function for the new collector
+     *      combiner    - The combiner function for the new collector 
+     *      finisher    - The finisher function for the new collector 
+     *      characteristics - The collector characteristics for the new collector 
+     * 
+     *      Returns: the new Collector
+     */
+
     static <T, TT, A, R> Collector<T, ?, R> pairs(BiFunction<T, T, TT> mapper, Collector<TT, A, R> downstream) {
         class Acc {
             T first, last;
@@ -101,6 +129,10 @@ public class Valeev2016Mix {
         List<String> input = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h");
         // >> [[a, b, c], [d, e, f], [g, h]]
 
+        // задачу нельзя нормально распараллелить. Сплитератор разбивает массив произвольно...
+        // или последовательно
+        // коллектор нельзя написать- нельзя сказать коллектору "работай параллельно"
+        // 
         List<List<String>> list = ofSublists(input, 3).map(ArrayList::new).collect(Collectors.toList());
         // >>[[a,b,c],[d,e,f],[g,h]]
 
