@@ -46,7 +46,11 @@ public class Valeev2016Mix {
                                         return b;});
 
 
+<<<<<<< HEAD
         // при "стримозе" и "regex-мозе" мозга(но прикольно !)
+=======
+        // при "стримозе" (но прикольно !)
+>>>>>>> b9cca4ab9a955aa6bafc1272dbf5b70c8700f81f
         // работает и для параллельных потоков, но..
         // 1. создавать/разбирать/менять строки накладно
         // 2. что будет, если в исходном потоке появятся ";" и "->" ?
@@ -84,7 +88,7 @@ public class Valeev2016Mix {
      *      R - The final result type of the new collector 
      * Parameters: 
      *      supplier    - The supplier function for the new collector
-     *      accumulator - The accumulator function for the new collector
+     *      accumugit lator - The accumulator function for the new collector
      *      combiner    - The combiner function for the new collector 
      *      finisher    - The finisher function for the new collector 
      *      characteristics - The collector characteristics for the new collector 
