@@ -46,11 +46,7 @@ public class Valeev2016Mix {
                                         return b;});
 
 
-<<<<<<< HEAD
         // при "стримозе" и "regex-мозе" мозга(но прикольно !)
-=======
-        // при "стримозе" (но прикольно !)
->>>>>>> b9cca4ab9a955aa6bafc1272dbf5b70c8700f81f
         // работает и для параллельных потоков, но..
         // 1. создавать/разбирать/менять строки накладно
         // 2. что будет, если в исходном потоке появятся ";" и "->" ?
@@ -95,7 +91,6 @@ public class Valeev2016Mix {
      * 
      *      Returns: the new Collector
      */
-
     static <T, TT, A, R> Collector<T, ?, R> pairs(BiFunction<T, T, TT> mapper, Collector<TT, A, R> downstream) {
         class Acc {
             T first, last;
